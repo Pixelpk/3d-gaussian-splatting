@@ -1,22 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 3D Gaussian Splatting Next.js Integration
 
-## Getting Started
+A modern Next.js implementation of real-time 3D Gaussian Splatting visualization, based on the excellent [antimatter15/splat](https://github.com/antimatter15/splat) project.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- 🚀 **Real-time rendering** with WebGL 2.0 at 60fps
+- 🎮 **Interactive controls** - keyboard, mouse, and touch support
+- 📱 **Responsive design** - works on desktop and mobile
+- 🔄 **Progressive loading** - start interacting while data loads
+- 🌐 **CORS support** - load models from external URLs
+- ⚡ **Web Workers** - non-blocking depth sorting
+- 📦 **TypeScript** - full type safety
+- 🎨 **Modern UI** - built with Tailwind CSS and shadcn/ui
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Quick Start
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. **Clone and install**:
+   ```bash
+   git clone <your-repo>
+   cd 3d-gaussian-splatting
+   npm install
+   ```
+
+2. **Add sample data** (optional):
+   ```bash
+   # Download a sample model
+   mkdir -p public/splats
+   curl -o public/splats/train.splat https://huggingface.co/cakewalk/splat-data/resolve/main/train.splat
+   ```
+
+3. **Run the development server**:
+   ```bash
+   npm run dev
+   ```
+
+4. **Open your browser** to `http://localhost:3000`
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
