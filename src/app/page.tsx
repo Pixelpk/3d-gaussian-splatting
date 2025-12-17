@@ -1,163 +1,71 @@
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import Image from "next/image";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center py-16">
-          <h1 className="text-5xl font-bold text-gray-900 mb-6">
-            3D Gaussian Splatting
+    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
+      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
+        <Image
+          className="dark:invert"
+          src="/next.svg"
+          alt="Next.js logo"
+          width={100}
+          height={20}
+          priority
+        />
+        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
+          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
+            To get started, edit the page.tsx file.
           </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-            Real-time WebGL renderer for 3D Gaussian Splats. Experience photorealistic 
-            3D scenes reconstructed from images, rendered in real-time in your browser.
-            Built using the original antimatter15/splat implementation.
-          </p>
-          
-          <div className="flex gap-4 justify-center flex-wrap">
-            <Link href="/iframe-viewer">
-              <Button size="lg" className="text-lg px-8 py-3">
-                Launch Viewer
-              </Button>
-            </Link>
-            <a 
-              href="https://github.com/antimatter15/splat" 
-              target="_blank" 
-              rel="noopener noreferrer"
+          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
+            Looking for a starting point or more instructions? Head over to{" "}
+            <a
+              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+              className="font-medium text-zinc-950 dark:text-zinc-50"
             >
-              <Button variant="outline" size="lg" className="text-lg px-8 py-3">
-                View Source
-              </Button>
-            </a>
-          </div>
+              Templates
+            </a>{" "}
+            or the{" "}
+            <a
+              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+              className="font-medium text-zinc-950 dark:text-zinc-50"
+            >
+              Learning
+            </a>{" "}
+            center.
+          </p>
         </div>
-
-
-
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                🚀 Real-time Rendering
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CardDescription>
-                Experience smooth 60fps rendering of complex 3D scenes using WebGL 2.0, 
-                with efficient GPU-based splatting techniques.
-              </CardDescription>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                🎮 Interactive Controls
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CardDescription>
-                Navigate through scenes with intuitive controls - keyboard movement, 
-                mouse orbiting, and smooth camera transitions.
-              </CardDescription>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                📱 Web-based
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CardDescription>
-                No downloads required. Works directly in modern web browsers 
-                with WebGL 2.0 support, including mobile devices.
-              </CardDescription>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                🔄 Progressive Loading
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CardDescription>
-                Start interacting immediately while models load progressively in the background, 
-                with real-time progress feedback.
-              </CardDescription>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                🌐 CORS Support
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CardDescription>
-                Load custom .splat files from any CORS-enabled URL, 
-                including popular model repositories and your own hosting.
-              </CardDescription>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                ⚡ Web Workers
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CardDescription>
-                Efficient depth sorting performed asynchronously in web workers, 
-                keeping the main thread free for smooth rendering.
-              </CardDescription>
-            </CardContent>
-          </Card>
+        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
+          <a
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
+            href="/iframe-viewer"
+          >
+            3D Viewer
+          </a>
+          <a
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
+            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Image
+              className="dark:invert"
+              src="/vercel.svg"
+              alt="Vercel logomark"
+              width={16}
+              height={16}
+            />
+            Deploy Now
+          </a>
+          <a
+            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
+            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Documentation
+          </a>
         </div>
-
-        <div className="text-center">
-          <Card className="max-w-4xl mx-auto">
-            <CardHeader>
-              <CardTitle>About 3D Gaussian Splatting</CardTitle>
-            </CardHeader>
-            <CardContent className="text-left">
-              <p className="mb-4">
-                3D Gaussian Splatting is a revolutionary technique for creating photorealistic 
-                3D scenes from sets of photographs. Unlike traditional 3D modeling or NeRFs, 
-                Gaussian Splatting represents scenes as collections of 3D Gaussian functions 
-                that can be rendered extremely efficiently.
-              </p>
-              
-              <p className="mb-4">
-                This implementation is based on the excellent work by{' '}
-                <a 
-                  href="https://github.com/antimatter15/splat" 
-                  className="text-blue-600 hover:underline"
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                >
-                  antimatter15/splat
-                </a>
-                , integrated into a modern Next.js application with TypeScript support, 
-                responsive design, and enhanced user experience.
-              </p>
-
-              <div className="text-center mt-6">
-                <Link href="/viewer">
-                  <Button>Try the Interactive Demo</Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      </main>
     </div>
   );
 }
