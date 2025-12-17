@@ -13,10 +13,11 @@ export default function Home() {
           <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
             Real-time WebGL renderer for 3D Gaussian Splats. Experience photorealistic 
             3D scenes reconstructed from images, rendered in real-time in your browser.
+            Built using the original antimatter15/splat implementation.
           </p>
           
-          <div className="flex gap-4 justify-center">
-            <Link href="/viewer">
+          <div className="flex gap-4 justify-center flex-wrap">
+            <Link href="/iframe-viewer">
               <Button size="lg" className="text-lg px-8 py-3">
                 Launch Viewer
               </Button>
@@ -32,6 +33,8 @@ export default function Home() {
             </a>
           </div>
         </div>
+
+
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
           <Card>
