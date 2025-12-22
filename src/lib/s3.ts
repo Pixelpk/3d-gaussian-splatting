@@ -4,15 +4,15 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { randomUUID } from "crypto";
 
 const s3Client = new S3Client({
-  region: process.env.AWS_REGION || "us-east-1",
+  region: process.env.CULTRA_VISTA_AWS_REGION || "us-east-1",
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
+    accessKeyId: process.env.CULTRA_VISTA_AWS_ACCESS_KEY_ID || "",
+    secretAccessKey: process.env.CULTRA_VISTA_AWS_SECRET_ACCESS_KEY || "",
   },
 });
 
-const BUCKET_NAME = process.env.AWS_S3_BUCKET || "3d-models-viewer";
-
+const BUCKET_NAME =
+  process.env.CULTRA_VISTA_AWS_S3_BUCKET || "3d-models-viewer";
 export async function uploadToS3(
   file: File,
   folder: string = "captures"
@@ -32,7 +32,7 @@ export async function uploadToS3(
     await s3Client.send(command);
 
     const url = `https://${BUCKET_NAME}.s3.${
-      process.env.AWS_REGION || "us-east-1"
+      process.env.CULTRA_VISTA_AWS_REGION || "us-east-1"
     }.amazonaws.com/${fileName}`;
 
     return { success: true, url };
@@ -64,7 +64,7 @@ export async function uploadBufferToS3(
     await s3Client.send(command);
 
     const url = `https://${BUCKET_NAME}.s3.${
-      process.env.AWS_REGION || "us-east-1"
+      process.env.CULTRA_VISTA_AWS_REGION || "us-east-1"
     }.amazonaws.com/${key}`;
 
     return { success: true, url };
