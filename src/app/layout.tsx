@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Fields Dashboard",
+  title: "CultraVista",
   description: "Your captures dashboard",
 };
 

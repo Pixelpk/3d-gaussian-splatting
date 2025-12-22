@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { Check, Loader2, X, Clock } from "lucide-react";
-import { getModelStatus, getModelZip } from "@/actions/uploadActions";
+import { getCapture } from "@/actions/captureActions";
+import { Button } from "@/components/ui/button";
 
 interface UploadProgressProps {
   fileName: string;
-  serialize: string | null;
+  captureId: string | null;
   onComplete?: () => void;
+  onClose?: () => void;
 }
 
 const STATUS_MESSAGES: Record<string, string> = {
@@ -19,53 +21,45 @@ const STATUS_MESSAGES: Record<string, string> = {
 
 export function UploadProgress({
   fileName,
-  serialize,
+  captureId,
   onComplete,
+  onClose,
 }: UploadProgressProps) {
   const [status, setStatus] = useState<number>(-1);
   const [modelUrl, setModelUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!serialize) return;
+    if (!captureId) return;
 
     const pollStatus = async () => {
       try {
-        const response = await getModelStatus(serialize);
+        const response = await getCapture(captureId);
 
         if (response.success && response.data) {
-          const newStatus = response.data.status;
+          const capture = response.data;
+          const newStatus = capture.status;
+          console.log("UploadProgress polling:", captureId, capture);
           setStatus(newStatus);
 
-          // If successful, get the model URL
-          if (newStatus === 2) {
+          // Handle both folderPath and folder_path
+          const captureFolder = capture.folderPath || capture.folder_path;
+
+          // If successful and folderPath URL exists, show success
+          if (newStatus === 2 && captureFolder) {
             clearInterval(pollingInterval);
-            const zipResponse = await getModelZip(serialize);
+            setModelUrl(captureFolder);
+            console.log("Model URL:", captureFolder);
 
-            if (zipResponse.success && zipResponse.data) {
-              const url = zipResponse.data.modelUrl;
-              setModelUrl(url);
-              console.log("Model URL:", url);
-
-              // Trigger download
-              if (url) {
-                const link = document.createElement("a");
-                link.href = url;
-                link.download = `model_${serialize}.zip`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-              }
-
-              if (onComplete) {
-                setTimeout(onComplete, 500);
-              }
+            if (onComplete) {
+              setTimeout(onComplete, 500);
             }
           } else if (newStatus === 1 || newStatus === 4) {
             // Failed or Expired
             clearInterval(pollingInterval);
             setError(STATUS_MESSAGES[String(newStatus)]);
           }
+          // If status === 2 but no folderPath yet, keep polling (don't clear interval)
         } else {
           setError(response.error || "Failed to get status");
         }
@@ -82,7 +76,7 @@ export function UploadProgress({
     return () => {
       clearInterval(pollingInterval);
     };
-  }, [serialize, onComplete]);
+  }, [captureId, onComplete]);
 
   const getProgressPercentage = () => {
     switch (status) {
@@ -153,8 +147,22 @@ export function UploadProgress({
       {modelUrl && (
         <div className="mt-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
           <p className="text-xs text-green-600 dark:text-green-400">
-            Model downloaded successfully! Check your downloads folder.
+            Model processing complete!
           </p>
+        </div>
+      )}
+
+      {/* Close Button - only show after initial upload is complete and data is stored in DB */}
+      {captureId && (
+        <div className="mt-4 flex justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onClose}
+            className="w-full sm:w-auto"
+          >
+            Close
+          </Button>
         </div>
       )}
     </div>

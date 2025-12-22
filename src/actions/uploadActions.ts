@@ -1,10 +1,10 @@
 "use server";
 
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 
 export async function uploadImagesToKiri(formData: FormData) {
   const API_KEY = process.env.KIRI_API_KEY;
-
+  console.log("API key: ", API_KEY);
   try {
     const response = await axios.post(
       "https://api.kiriengine.app/api/v1/open/3dgs/image",
@@ -16,10 +16,16 @@ export async function uploadImagesToKiri(formData: FormData) {
       }
     );
 
+    console.log(response.data);
     return { success: true, data: response.data.data };
   } catch (error: unknown) {
+    console.log(error);
     const errorMessage =
-      error instanceof Error ? error.message : "An unknown error occurred";
+      error instanceof AxiosError
+        ? error?.response?.data?.msg
+        : error instanceof Error
+        ? error.message
+        : "An unknown error occurred";
     return { success: false, error: errorMessage };
   }
 }

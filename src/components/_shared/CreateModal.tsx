@@ -7,13 +7,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { CloudUpload, CircleHelp } from "lucide-react";
 import { CreateModalProps } from "@/types";
 import { useRef, useState } from "react";
 import { UploadProgress } from "./UploadProgress";
 import { uploadImagesToKiri } from "@/actions/uploadActions";
+import { createCapture } from "@/actions/captureActions";
+import { uploadThumbnailBufferToS3 } from "@/actions/s3Actions";
+import { extractVideoThumbnailClientSide } from "@/lib/videoThumbnail";
 
-export function CreateModal({ isOpen, onOpenChange }: CreateModalProps) {
+export function CreateModal({
+  isOpen,
+  onOpenChange,
+  onUploadComplete,
+}: CreateModalProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -21,6 +29,8 @@ export function CreateModal({ isOpen, onOpenChange }: CreateModalProps) {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [serialize, setSerialize] = useState<string | null>(null);
+  const [title, setTitle] = useState("");
+  const [captureId, setCaptureId] = useState<string | null>(null);
 
   const isVideoFile = (file: File) => {
     return file.type.startsWith("video/");
@@ -109,70 +119,140 @@ export function CreateModal({ isOpen, onOpenChange }: CreateModalProps) {
 
   const handleNext = async () => {
     if (selectedFiles.length === 0) return;
+    if (!title.trim()) {
+      setError("Please enter a title");
+      return;
+    }
 
     setIsUploading(true);
     setUploadProgress(0);
-
-    const formData = new FormData();
-
-    // Check if it's a video or images
-    const hasVideo = selectedFiles.some(isVideoFile);
-
-    if (hasVideo) {
-      // Send single video as videoFile
-      formData.append("videoFile", selectedFiles[0]);
-    } else {
-      // Send multiple images as imagesFiles
-      selectedFiles.forEach((file) => {
-        formData.append("imagesFiles", file);
-      });
-    }
-
-    // Append standard 3DGS settings
-    formData.append("isMesh", "0");
-    formData.append("isMask", "1");
-
-    // Simulate progress while uploading
-    const progressInterval = setInterval(() => {
-      setUploadProgress((prev) => {
-        if (prev >= 90) {
-          clearInterval(progressInterval);
-          return 90;
-        }
-        return prev + 10;
-      });
-    }, 200);
+    setError(null);
 
     try {
+      // Step 1: Generate and upload thumbnail
+      let thumbnailUrl: string | undefined;
+      const hasVideo = selectedFiles.some(isVideoFile);
+
+      if (hasVideo) {
+        // Extract video thumbnail
+        setUploadProgress(10);
+        const thumbnailBlob = await extractVideoThumbnailClientSide(
+          selectedFiles[0]
+        );
+        const thumbnailBuffer = await thumbnailBlob.arrayBuffer();
+        const thumbnailFileName = `${Date.now()}-${Math.random()
+          .toString(36)
+          .substring(7)}.jpg`;
+
+        const uploadResult = await uploadThumbnailBufferToS3(
+          thumbnailBuffer,
+          thumbnailFileName
+        );
+
+        if (uploadResult.success && uploadResult.url) {
+          thumbnailUrl = uploadResult.url;
+        }
+      } else {
+        // Use first image as thumbnail
+        setUploadProgress(10);
+        const firstImage = selectedFiles[0];
+        const thumbnailBuffer = await firstImage.arrayBuffer();
+        const thumbnailFileName = `${Date.now()}-${Math.random()
+          .toString(36)
+          .substring(7)}.jpg`;
+
+        const uploadResult = await uploadThumbnailBufferToS3(
+          thumbnailBuffer,
+          thumbnailFileName
+        );
+
+        if (uploadResult.success && uploadResult.url) {
+          thumbnailUrl = uploadResult.url;
+        }
+      }
+
+      // Step 2: Prepare and upload to Kiri API
+      setUploadProgress(20);
+      const formData = new FormData();
+
+      if (hasVideo) {
+        formData.append("videoFile", selectedFiles[0]);
+      } else {
+        selectedFiles.forEach((file) => {
+          formData.append("imagesFiles", file);
+        });
+      }
+
+      formData.append("isMesh", "0");
+      formData.append("isMask", "1");
+
+      // Simulate progress while uploading
+      const progressInterval = setInterval(() => {
+        setUploadProgress((prev) => {
+          if (prev >= 80) {
+            clearInterval(progressInterval);
+            return 80;
+          }
+          return prev + 5;
+        });
+      }, 500);
+
       const response = await uploadImagesToKiri(formData);
       clearInterval(progressInterval);
-      console.log("Upload result: ", response);
 
       if (response.success) {
         console.log("Upload successful:", response.data);
-        // Extract serialize from response
+        setUploadProgress(85);
+
+        // Step 3: Create database entry only after successful API response
+        const captureResult = await createCapture({
+          title: title.trim(),
+          thumbnail: thumbnailUrl,
+          serialize: response.data?.serialize,
+        });
+
+        if (!captureResult.success || !captureResult.data) {
+          throw new Error(captureResult.error || "Failed to create capture");
+        }
+
+        setCaptureId(captureResult.data.id);
         if (response.data?.serialize) {
           setSerialize(response.data.serialize);
         }
+        setUploadProgress(100);
       } else {
-        console.error("Upload failed:", response.error);
-        setIsUploading(false);
+        console.log("Response: ", response);
+        throw new Error(response.error || "Upload failed");
       }
     } catch (error) {
-      clearInterval(progressInterval);
       console.error("Upload error:", error);
+      setError(
+        error instanceof Error
+          ? error.message
+          : "An error occurred during upload"
+      );
       setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 
   const handleUploadComplete = () => {
-    setTimeout(() => {
-      onOpenChange(false);
-      setIsUploading(false);
-      setSelectedFiles([]);
-      setSerialize(null);
-      setUploadProgress(0);
-    }, 5000);
+    // Don't auto-close, let user close manually
+  };
+
+  const handleClose = () => {
+    onOpenChange(false);
+    setIsUploading(false);
+    setSelectedFiles([]);
+    setSerialize(null);
+    setUploadProgress(0);
+    setTitle("");
+    setCaptureId(null);
+    setError(null);
+    // Trigger refetch on parent
+    if (onUploadComplete) {
+      onUploadComplete();
+    }
   };
 
   return (
@@ -192,11 +272,30 @@ export function CreateModal({ isOpen, onOpenChange }: CreateModalProps) {
                   ? selectedFiles[0].name
                   : `${selectedFiles.length} files`
               }
-              serialize={serialize}
+              captureId={captureId}
               onComplete={handleUploadComplete}
+              onClose={handleClose}
             />
           ) : (
             <>
+              {/* Title Input */}
+              <div className="mb-6">
+                <label
+                  htmlFor="title"
+                  className="block text-sm font-medium mb-2"
+                >
+                  Title
+                </label>
+                <Input
+                  id="title"
+                  type="text"
+                  placeholder="Enter capture title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+
               {/* Upload Area */}
               <input
                 ref={fileInputRef}
@@ -273,11 +372,15 @@ export function CreateModal({ isOpen, onOpenChange }: CreateModalProps) {
         </div>
 
         <div className="px-6 py-4 border-t border-border flex justify-end gap-3">
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>
-            Close
-          </Button>
-          {!isUploading && selectedFiles.length > 0 && (
-            <Button onClick={handleNext}>Next</Button>
+          {!isUploading && (
+            <>
+              <Button variant="ghost" onClick={() => onOpenChange(false)}>
+                Close
+              </Button>
+              {selectedFiles.length > 0 && (
+                <Button onClick={handleNext}>Next</Button>
+              )}
+            </>
           )}
         </div>
       </DialogContent>

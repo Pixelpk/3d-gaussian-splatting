@@ -12,9 +12,7 @@ export function Navbar({ onCreateClick }: NavbarProps) {
           <div className="h-10 w-10 bg-muted rounded-md flex items-center justify-center">
             <div className="h-6 w-6 bg-foreground/20 rounded" />
           </div>
-          <h1 className="text-xl font-semibold text-foreground">
-            Fields Dashboard
-          </h1>
+          <h1 className="text-xl font-semibold text-foreground">CultraVista</h1>
         </div>
 
         <div className="flex items-center gap-3">

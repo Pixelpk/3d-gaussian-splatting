@@ -11,11 +11,12 @@ export function CaptureGrid({ captures }: CaptureGridProps) {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
         {captures.map((capture) => (
           <CaptureCard
-            key={capture.id}
-            id={capture.id}
+            key={capture._id || capture.id}
+            id={capture._id || capture.id || ""}
             title={capture.title}
-            image={capture.image}
+            thumbnail={capture.thumbnail}
             status={capture.status}
+            folderPath={capture.folderPath}
           />
         ))}
       </div>
