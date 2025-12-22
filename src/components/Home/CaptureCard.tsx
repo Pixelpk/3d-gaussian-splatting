@@ -78,16 +78,6 @@ export function CaptureCard({
 
   const statusLabel = getStatusLabel(status);
 
-  // Use proxy for external URLs to avoid CORS and configuration issues
-  const getImageSrc = (url: string | undefined) => {
-    if (!url) return "";
-    // If it's an external URL (S3), use our proxy
-    if (url.startsWith("http")) {
-      return `/api/proxy?url=${encodeURIComponent(url)}`;
-    }
-    return url;
-  };
-
   // Only make card clickable if completed and has folderPath
   const isClickable = status === 2 && folderPath;
   const isProcessing = status === 0 || (status === 2 && !folderPath);
@@ -116,7 +106,7 @@ export function CaptureCard({
         <div className="relative aspect-square bg-muted">
           {thumbnail_ ? (
             <Image
-              src={getImageSrc(thumbnail_)}
+              src={thumbnail_}
               alt={title}
               fill
               className="object-cover"

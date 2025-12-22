@@ -23,9 +23,7 @@ function validateSignature(
 
 export async function POST(request: NextRequest) {
   try {
-    console.log("Request body: ", request.body);
     const rawBody = await request.text();
-    console.log("raw body: ", rawBody);
 
     const body = JSON.parse(rawBody);
 

@@ -80,10 +80,6 @@ export function CreateModal({
 
     setError(null);
     setSelectedFiles(fileArray);
-    console.log(
-      "Files selected:",
-      fileArray.map((f) => f.name)
-    );
   };
 
   const handleClick = () => {
@@ -201,7 +197,6 @@ export function CreateModal({
       clearInterval(progressInterval);
 
       if (response.success) {
-        console.log("Upload successful:", response.data);
         setUploadProgress(85);
 
         // Step 3: Create database entry only after successful API response
@@ -215,13 +210,12 @@ export function CreateModal({
           throw new Error(captureResult.error || "Failed to create capture");
         }
 
-        setCaptureId(captureResult.data.id);
+        setCaptureId(captureResult.data._id);
         if (response.data?.serialize) {
           setSerialize(response.data.serialize);
         }
         setUploadProgress(100);
       } else {
-        console.log("Response: ", response);
         throw new Error(response.error || "Upload failed");
       }
     } catch (error) {
