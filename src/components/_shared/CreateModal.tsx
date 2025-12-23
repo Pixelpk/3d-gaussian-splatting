@@ -192,9 +192,27 @@ export function CreateModal({
         });
       }, 500);
 
-      // Upload directly to Kiri via our API proxy
-      const response = await fetch("/api/kiri/upload", {
+      // Get API key from backend (with rate limiting and origin validation)
+      const tokenResponse = await fetch("/api/kiri/token");
+
+      if (!tokenResponse.ok) {
+        clearInterval(progressInterval);
+        const errorData = await tokenResponse.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to get upload token");
+      }
+
+      const { token } = await tokenResponse.json();
+
+      // Upload directly to Kiri API from frontend (bypasses all Vercel limits)
+      const kiriEndpoint = hasVideo
+        ? "https://api.kiriengine.app/api/v1/open/3dgs/video"
+        : "https://api.kiriengine.app/api/v1/open/3dgs/image";
+
+      const response = await fetch(kiriEndpoint, {
         method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
         body: formData,
       });
 
@@ -202,12 +220,12 @@ export function CreateModal({
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || "Upload to Kiri API failed");
+        throw new Error(errorData.msg || "Upload to Kiri API failed");
       }
 
       const result = await response.json();
 
-      if (result.success) {
+      if (result.data) {
         setUploadProgress(85);
 
         // Step 3: Create database entry only after successful API response
@@ -227,7 +245,7 @@ export function CreateModal({
         }
         setUploadProgress(100);
       } else {
-        throw new Error(result.error || "Upload failed");
+        throw new Error("Upload failed");
       }
     } catch (error) {
       console.error("Upload error:", error);
