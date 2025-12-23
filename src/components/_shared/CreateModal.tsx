@@ -150,20 +150,20 @@ export function CreateModal({
       } else {
         // Use first image as thumbnail
         setUploadProgress(10);
-        // const firstImage = selectedFiles[0];
-        // const thumbnailBuffer = await firstImage.arrayBuffer();
-        // const thumbnailFileName = `${Date.now()}-${Math.random()
-        //   .toString(36)
-        //   .substring(7)}.jpg`;
+        const firstImage = selectedFiles[0];
+        const thumbnailBuffer = await firstImage.arrayBuffer();
+        const thumbnailFileName = `${Date.now()}-${Math.random()
+          .toString(36)
+          .substring(7)}.jpg`;
 
-        // const uploadResult = await uploadThumbnailBufferToS3(
-        //   thumbnailBuffer,
-        //   thumbnailFileName
-        // );
+        const uploadResult = await uploadThumbnailBufferToS3(
+          thumbnailBuffer,
+          thumbnailFileName
+        );
 
-        // if (uploadResult.success && uploadResult.url) {
-        //   thumbnailUrl = uploadResult.url;
-        // }
+        if (uploadResult.success && uploadResult.url) {
+          thumbnailUrl = uploadResult.url;
+        }
       }
 
       // Step 2: Prepare and upload to Kiri API
