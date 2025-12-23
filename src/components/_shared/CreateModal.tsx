@@ -12,7 +12,6 @@ import { CloudUpload, CircleHelp } from "lucide-react";
 import { CreateModalProps } from "@/types";
 import { useRef, useState } from "react";
 import { UploadProgress } from "./UploadProgress";
-import { uploadImagesToKiri } from "@/actions/uploadActions";
 import { createCapture } from "@/actions/captureActions";
 import { uploadThumbnailBufferToS3 } from "@/actions/s3Actions";
 import { extractVideoThumbnailClientSide } from "@/lib/videoThumbnail";
@@ -151,20 +150,20 @@ export function CreateModal({
       } else {
         // Use first image as thumbnail
         setUploadProgress(10);
-        const firstImage = selectedFiles[0];
-        const thumbnailBuffer = await firstImage.arrayBuffer();
-        const thumbnailFileName = `${Date.now()}-${Math.random()
-          .toString(36)
-          .substring(7)}.jpg`;
+        // const firstImage = selectedFiles[0];
+        // const thumbnailBuffer = await firstImage.arrayBuffer();
+        // const thumbnailFileName = `${Date.now()}-${Math.random()
+        //   .toString(36)
+        //   .substring(7)}.jpg`;
 
-        const uploadResult = await uploadThumbnailBufferToS3(
-          thumbnailBuffer,
-          thumbnailFileName
-        );
+        // const uploadResult = await uploadThumbnailBufferToS3(
+        //   thumbnailBuffer,
+        //   thumbnailFileName
+        // );
 
-        if (uploadResult.success && uploadResult.url) {
-          thumbnailUrl = uploadResult.url;
-        }
+        // if (uploadResult.success && uploadResult.url) {
+        //   thumbnailUrl = uploadResult.url;
+        // }
       }
 
       // Step 2: Prepare and upload to Kiri API
@@ -193,17 +192,29 @@ export function CreateModal({
         });
       }, 500);
 
-      const response = await uploadImagesToKiri(formData);
+      // Upload directly to Kiri via our API proxy
+      const response = await fetch("/api/kiri/upload", {
+        method: "POST",
+        body: formData,
+      });
+
       clearInterval(progressInterval);
 
-      if (response.success) {
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Upload to Kiri API failed");
+      }
+
+      const result = await response.json();
+
+      if (result.success) {
         setUploadProgress(85);
 
         // Step 3: Create database entry only after successful API response
         const captureResult = await createCapture({
           title: title.trim(),
           thumbnail: thumbnailUrl,
-          serialize: response.data?.serialize,
+          serialize: result.data?.serialize,
         });
 
         if (!captureResult.success || !captureResult.data) {
@@ -211,12 +222,12 @@ export function CreateModal({
         }
 
         setCaptureId(captureResult.data._id);
-        if (response.data?.serialize) {
-          setSerialize(response.data.serialize);
+        if (result.data?.serialize) {
+          setSerialize(result.data.serialize);
         }
         setUploadProgress(100);
       } else {
-        throw new Error(response.error || "Upload failed");
+        throw new Error(result.error || "Upload failed");
       }
     } catch (error) {
       console.error("Upload error:", error);

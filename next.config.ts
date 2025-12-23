@@ -20,6 +20,7 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: "300mb",
     },
+    middlewareClientMaxBodySize: "300mb", // Increase Edge runtime body size limit
   },
   compiler: {
     removeConsole: process.env.NODE_ENV === "production",
