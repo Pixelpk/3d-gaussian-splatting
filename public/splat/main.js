@@ -753,7 +753,15 @@ async function main() {
 
   const rowLength = 3 * 4 + 3 * 4 + 4 + 4;
   const reader = req.body.getReader();
-  let splatData = new Uint8Array(req.headers.get("content-length"));
+
+  // Get content-length and handle missing or invalid values
+  const contentLengthHeader = req.headers.get("content-length");
+  const contentLength = contentLengthHeader
+    ? parseInt(contentLengthHeader, 10)
+    : 0;
+
+  // Initialize with a reasonable size or allocate dynamically
+  let splatData = new Uint8Array(contentLength || 50 * 1024 * 1024); // Default to 50MB if unknown
 
   const downsample =
     splatData.length / rowLength > 500000 ? 1 : 1 / devicePixelRatio;
@@ -1422,6 +1430,14 @@ async function main() {
     const { done, value } = await reader.read();
     if (done || stopLoading) break;
 
+    // Resize buffer if needed
+    if (bytesRead + value.length > splatData.length) {
+      const newSize = Math.max(splatData.length * 2, bytesRead + value.length);
+      const newBuffer = new Uint8Array(newSize);
+      newBuffer.set(splatData);
+      splatData = newBuffer;
+    }
+
     splatData.set(value, bytesRead);
     bytesRead += value.length;
 
@@ -1435,6 +1451,12 @@ async function main() {
       lastVertexCount = vertexCount;
     }
   }
+
+  // Trim buffer to actual size if we allocated more than needed
+  if (bytesRead < splatData.length) {
+    splatData = splatData.slice(0, bytesRead);
+  }
+
   if (!stopLoading) {
     if (isPly(splatData)) {
       // ply file magic header means it should be handled differently
