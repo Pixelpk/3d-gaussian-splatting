@@ -17,17 +17,20 @@ export async function POST(request: NextRequest) {
     // Parse formData (Edge runtime supports up to middlewareClientMaxBodySize)
     const formData = await request.formData();
 
+    // Check if it's a video or images upload
+    const isVideo = formData.has("videoFile");
+    const endpoint = isVideo
+      ? "https://api.kiriengine.app/api/v1/open/3dgs/video"
+      : "https://api.kiriengine.app/api/v1/open/3dgs/image";
+
     // Forward the request to Kiri API with the auth header
-    const response = await fetch(
-      "https://api.kiriengine.app/api/v1/open/3dgs/image",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${API_KEY}`,
-        },
-        body: formData,
-      }
-    );
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${API_KEY}`,
+      },
+      body: formData,
+    });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
