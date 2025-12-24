@@ -179,7 +179,7 @@ export function CreateModal({
       }
 
       formData.append("isMesh", "0");
-      formData.append("isMask", "1");
+      formData.append("isMask", "0");
 
       // Simulate progress while uploading
       const progressInterval = setInterval(() => {
